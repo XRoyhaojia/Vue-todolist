@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="vue.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        
+        ol,
+        ul {
+            list-style: none;
+        }
+        
+        body {
+            min-width: 698px;
+            background-color: #CDCDCD;
+        }
+        
+        header {
+            width: 100%;
+            height: 50px;
+            background-color: rgba(47, 47, 47, 0.98);
+            ;
+        }
+        
+        section {
+            margin: 0 auto;
+            width: 600px;
+        }
+        
+        header section label {
+            float: left;
+            width: 100px;
+            font-size: 24px;
+            color: #ddd;
+            cursor: pointer;
+            line-height: 50px;
+        }
+        
+        header section input {
+            float: right;
+            width: 60%;
+            height: 26px;
+            border-radius: 5px;
+            margin-top: 12px;
+            border: 0;
+            padding-left: 10px;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.45) inset;
+            ;
+        }
+        
+        body section h2 span {
+            position: absolute;
+            display: inline-block;
+            top: 2px;
+            right: 5px;
+            width: 20px;
+            height: 20px;
+            box-sizing: border-box;
+            border-radius: 100%;
+            background-color: #E6E6FA;
+            line-height: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            padding: 0 5px;
+        }
+        
+        h2 {
+            height: 50px;
+            position: relative;
+            margin-top: 20px;
+        }
+        
+        section ol li {
+            width: 100%;
+            height: 32px;
+            line-height: 32px;
+            background-color: #fff;
+            border-left: 5px solid #629A9c;
+            border-radius: 5px;
+            position: relative;
+            cursor: move;
+        }
+        
+        section ol li input {
+            position: absolute;
+            display: block;
+            top: 5px;
+            left: 10px;
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+        }
+        
+        section ol li a {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            width: 14px;
+            height: 12px;
+            line-height: 12px;
+            border-radius: 14px;
+            border: 6px double #FFF;
+            color: #fff;
+            background-color: #ccc;
+            text-align: center;
+        }
+        
+        section ol li p {
+            font-weight: 700;
+            font-size: 17px;
+            margin-left: 100px;
+            width: 60%;
+        }
+        
+        .done {
+            border-left: 5px solid #999;
+            background: #fff;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07);
+            opacity: 0.5;
+        }
+        
+        .writer {
+            width: 100%;
+            text-align: center;
+            color: #999;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <header>
+            <section>
+                <div class="tijiao">
+                    <label> ToDoList</label>
+                    <input type="text" v-model='inputValue' @keydown.enter='enterEvent' placeholder="添加todolist">
+                </div>
+            </section>
+
+        </header>
+        <section>
+            <h2>
+                正在进行
+                <span>0</span>
+            </h2>
+            <ol>
+                <!-- <h2 v-for='item,index in toDoList'>{{item}}</h2> -->
+                <li v-for='item,index in doingList' :key='index'>
+
+                    <input type="checkbox" @click.prevent='checkDone(item.id)' :data-id='item.id'>
+                    <p>{{item.content}}</p>
+                    <a href="javascript:;">-</a>
+                </li>
+            </ol>
+
+            <h2>
+                已经完成
+                <span>0</span>
+            </h2>
+            <ol>
+                <li v-for='item,index in doneList' class="done" :key='index'>
+                    <input type="checkbox" @click.prevent='checkDone(item.id)' :data-id='item.id' checked='checked'>
+                    <p>{{item.content}}</p>
+                    <a href="javascript:;" @click='deleteItem(item.id)'>-</a>
+                </li>
+            </ol>
+        </section>
+        <footer>
+            <section class="writer">
+                ------- Vue仿写Todolist --By Roy -------
+            </section>
+        </footer>
+    </div>
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                toDoList: [],
+                inputValue: ''
+            },
+            methods: {
+                enterEvent: function() {
+                    // 将数据添加至toDoList
+                    if (this.inputValue === '') {
+                        alert('todolist不能为空');
+                        return
+                    }
+                    this.toDoList.push({
+                            content: this.inputValue,
+                            isDone: false,
+                            id: this.toDoList.length
+
+                        })
+                        //保存
+                    this.saveData();
+                    // 将输入框清空
+                    this.inputValue = '';
+                },
+                // 将数据保存到本地存储
+                saveData: function() {
+                    localStorage.toDoList = JSON.stringify(this.toDoList)
+                },
+                checkDone: function(id) {
+                    this.toDoList[id].isDone = !this.toDoList[id].isDone;
+                    this.saveData();
+                },
+                deleteItem: function(id) {
+                    this.toDoList.splice(id, 1);
+                    this.forEach((item, i) => {
+                        item.id = i;
+                    });
+                }
+
+            },
+            computed: {
+                // 过滤todolist数据得到是否完成的数据
+                doingList: function() {
+                    let arr = this.toDoList.filter(function(item, index) {
+                        return !item.isDone
+                    })
+                    return arr;
+                },
+                doneList: function() {
+                    let arr = this.toDoList.filter(function(item, index) {
+                        return item.isDone
+                    })
+                    return arr;
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>
